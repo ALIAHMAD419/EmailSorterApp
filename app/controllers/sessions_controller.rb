@@ -6,7 +6,7 @@ class SessionsController < ApplicationController
     if user.persisted?
       log_in(user)
       user.update_google_tokens(access_token.credentials)
-      redirect_to root_path, notice: "Successfully signed in with Google!"
+      redirect_to categories_path, notice: "Successfully signed in with Google!"
     else
       redirect_to login_path, alert: "Google authentication failed."
     end

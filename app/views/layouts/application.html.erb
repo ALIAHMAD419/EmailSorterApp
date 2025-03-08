@@ -20,4 +20,13 @@
   <body>
     <%= yield %>
   </body>
+
+  <footer>
+     <% if logged_in? %>
+      <p class="text-lg text-green-600 font-semibold">Hello, <%= current_user.name %> 👋</p>
+      <%= form_with url: logout_path, method: :delete do %>
+        <%= submit_tag "Logout", class: "bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg shadow-md transition cursor-pointer" %>
+      <% end %>
+    <% end %>
+  </footer>
 </html>
