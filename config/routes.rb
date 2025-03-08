@@ -4,10 +4,12 @@ Rails.application.routes.draw do
   get "auth/failure", to: redirect("/")
   delete "/logout", to: "sessions#destroy"
 
-  post "/process_email", to: "emails#process_email"
-  get "/categories/:name/emails", to: "emails#index"
+  resources :categories do
+    resources :emails, only: [:index, :show, :destroy]
+  end
+  
   post "/bulk_action", to: "emails#bulk_action"
-  resources :categories
+  
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

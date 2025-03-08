@@ -8,7 +8,7 @@ class OpenAiService
   def chat(prompt)
     response = @client.chat(
       parameters: {
-        model: "omni-moderation-2024-09-26",
+        model: "gpt-4o-mini",
         messages: [ { role: "user", content: prompt } ],
         max_tokens: 100
       }
