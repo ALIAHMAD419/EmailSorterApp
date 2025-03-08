@@ -5,6 +5,7 @@ class CreateUsers < ActiveRecord::Migration[7.2]
       t.string :email
       t.string :google_token
       t.string :google_refresh_token
+      t.datetime :google_token_expires_at
       t.string :uid
       t.string :provider
 

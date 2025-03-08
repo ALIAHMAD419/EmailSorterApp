@@ -26,6 +26,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_140303) do
   create_table "emails", force: :cascade do |t|
     t.string "subject"
     t.text "body"
+    t.text "summary"
     t.bigint "category_id", null: false
     t.bigint "user_id", null: false
     t.string "gmail_message_id"
@@ -40,6 +41,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_140303) do
     t.string "email"
     t.string "google_token"
     t.string "google_refresh_token"
+    t.datetime "google_token_expires_at"
     t.string "uid"
     t.string "provider"
     t.datetime "created_at", null: false
