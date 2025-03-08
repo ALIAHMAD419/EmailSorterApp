@@ -21,12 +21,18 @@
     <%= yield %>
   </body>
 
-  <footer>
-     <% if logged_in? %>
-      <p class="text-lg text-green-600 font-semibold">Hello, <%= current_user.name %> 👋</p>
-      <%= form_with url: logout_path, method: :delete do %>
-        <%= submit_tag "Logout", class: "bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg shadow-md transition cursor-pointer" %>
+<footer class="bg-light py-4 mt-5 border-top shadow-sm">
+  <div class="container text-center">
+    <% if logged_in? %>
+      <p class="h5 text-success fw-semibold mb-2">
+        Hello, <%= current_user.name %> 👋
+      </p>
+      <%= form_with url: logout_path, method: :delete, class: "d-inline" do %>
+        <%= submit_tag "Logout", class: "btn btn-danger fw-bold px-4 py-2 shadow-sm" %>
       <% end %>
+    <% else %>
+      <p class="text-muted">You are not logged in.</p>
     <% end %>
-  </footer>
+  </div>
+</footer>
 </html>

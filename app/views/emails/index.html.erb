@@ -1,0 +1,89 @@
+<div class="container mt-4">
+   <!-- Flash Messages -->
+  <%= render "shared/flash" %>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="text-primary">📧 Emails <%= "(#{@category_name})" if @category_name.present? %></h1>
+  </div>
+
+  <% if @emails.any? %>
+    <%= form_with url: bulk_action_path(@category), method: :post, id: "emailForm", local: true do %>
+      <div class="d-flex mb-3">
+        <select name="action_type" id="actionDropdown" class="form-select w-auto me-2">
+          <option value="">Select Action</option>
+          <option value="delete">🗑️ Delete Selected</option>
+          <option value="unsubscribe">🚫 Unsubscribe</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </div>
+
+      <table class="table table-striped table-hover shadow-lg">
+        <thead class="bg-primary text-white">
+          <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>Subject</th>
+            <th>Summary</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @emails.each do |email| %>
+            <tr>
+              <td><input type="checkbox" name="email_ids[]" value="<%= email.id %>"></td>
+              <td>
+                <strong>
+                  <%= link_to (email.subject.presence || "No Subject"), category_email_path(email.category, email), class: "text-decoration-none text-primary" %>
+                </strong>
+              </td>
+              <td>
+                <%= link_to (email.summary.presence || "No Summary Available"), category_email_path(email.category, email), class: "text-decoration-none text-secondary" %>
+              </td>
+              <td>
+                <%= link_to email.category.name, category_email_path(email.category, email), class: "text-decoration-none text-dark" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+    <% end %>
+  <% else %>
+    <div class="alert alert-warning text-center">
+      🚨 No emails found.
+    </div>
+  <% end %>
+</div>
+
+<%= link_to '⬅️ Back to Categories', categories_path, class: 'btn btn-secondary' %>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const selectAllCheckbox = document.getElementById("selectAll");
+    const checkboxes = document.querySelectorAll("input[name='email_ids[]']");
+    const form = document.getElementById("emailForm");
+    const actionDropdown = document.getElementById("actionDropdown");
+
+    // Select/Deselect All Checkboxes
+    selectAllCheckbox.addEventListener("change", function() {
+      checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    });
+
+    // Prevent form submission if no action is selected or no emails are checked
+    form.addEventListener("submit", function(e) {
+      let selectedAction = actionDropdown.value;
+      let selectedEmails = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+      if (!selectedAction) {
+        alert("⚠️ Please select an action before applying.");
+        e.preventDefault();
+        return;
+      }
+
+      if (!selectedEmails) {
+        alert("⚠️ Please select emails before applying.");
+        e.preventDefault();
+      }
+    });
+  });
+</script>

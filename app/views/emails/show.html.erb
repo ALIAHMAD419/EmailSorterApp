@@ -1,0 +1,25 @@
+<div class="container mt-5">
+     <!-- Flash Messages -->
+  <%= render "shared/flash" %>
+  <div class="card shadow-lg">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h3 class="mb-0"><i class="bi bi-envelope"></i> <%= @email.subject.presence || "No Subject" %></h3>
+      <%= link_to "⬅ Back to Emails", category_emails_path(@email.category), class: "btn btn-light btn-sm" %>
+    </div>
+    <div class="card-body">
+      <h5 class="text-muted"><i class="bi bi-folder"></i> Category: <span class="text-primary"><%= @email.category.name %></span></h5>
+      <hr>
+      <p class="text-muted"><strong>Summary:</strong> <%= @email.summary.presence || "No Summary Available" %></p>
+      <hr>
+      <h6 class="text-dark"><i class="bi bi-chat-left-text"></i> Email Body:</h6>
+      <div class="border p-3 rounded bg-light">
+        <%= simple_format(@email.body.presence || "No Content Available") %>
+      </div>
+    </div>
+    <div class="card-footer text-end">
+       <%= form_with url: category_email_path(@email.category, @email), method: :delete, data: { confirm: 'Are you sure?' }, class: 'd-inline' do %>
+          <%= submit_tag "🗑 Delete Email", class: "btn btn-danger btn-sm" %>
+        <% end %>
+    </div>
+  </div>
+</div>

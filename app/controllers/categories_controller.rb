@@ -12,26 +12,34 @@ class CategoriesController < ApplicationController
   def create
     @category = current_user.categories.build(category_params)
     if @category.save
-      redirect_to categories_path, notice: "Category created successfully."
+      flash[:notice] = "Category created successfully."
+      redirect_to categories_path
     else
-      render :new
+      flash[:alert] = "Failed to create category. Please check the errors."
+      render :new, status: :unprocessable_entity
     end
   end
+
 
   def edit;end
 
   def update
     if @category.update(category_params)
-      redirect_to categories_path, notice: "Category updated successfully."
+      flash[:notice] = "Category updated successfully."
+      redirect_to categories_path
     else
-      render :edit
+      flash[:alert] = "Failed to update category. Please check the errors."
+      render :edit, status: :unprocessable_entity
     end
   end
 
+
   def destroy
-    @category.destroy
-    redirect_to categories_path, notice: "Category deleted successfully."
+    # @category.destroy
+    flash[:success] = "Category deleted successfully."
+    redirect_to categories_path
   end
+
 
 
   private

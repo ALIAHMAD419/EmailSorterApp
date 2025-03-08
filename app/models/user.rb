@@ -10,6 +10,15 @@ class User < ApplicationRecord
       u.google_refresh_token = response[:credentials][:refresh_token] if response[:credentials][:refresh_token].present?
       u.google_token_expires_at = Time.at(response[:credentials][:expires_at])
     end
+    if user.persisted? && user.categories.empty?
+      user.categories.create([
+        { name: "Work", description: "Emails related to work" },
+        { name: "Promotions", description: "Promotional emails" },
+        { name: "Personal", description: "Personal emails" },
+        { name: "Default", description: "When there is not perfect match" }
+      ])
+    end
+
     user
   end
 
@@ -23,7 +32,7 @@ class User < ApplicationRecord
 
   def google_credentials
     return nil unless google_token
-  
+
     client = Signet::OAuth2::Client.new(
       client_id: ENV["GOOGLE_CLIENT_ID"],
       client_secret: ENV["GOOGLE_CLIENT_SECRET"],
@@ -32,7 +41,7 @@ class User < ApplicationRecord
       refresh_token: google_refresh_token,
       expires_at: google_token_expires_at.to_i
     )
-  
+
     if google_token_expires_at.nil? || client.expired? || google_token_expires_at < 5.minutes.from_now
       if google_refresh_token.present?
         puts "🔄 Refreshing Google token..."
@@ -42,12 +51,12 @@ class User < ApplicationRecord
         return nil  # Return nil to force re-authentication in the app
       end
     end
-  
+
     client
   end
 
   private
-  
+
   def refresh_google_token(client)
     begin
       response = client.refresh!
@@ -60,11 +69,11 @@ class User < ApplicationRecord
       response.access_token
     rescue Signet::AuthorizationError => e
       puts "⚠️ Token refresh failed: #{e.message}. Logging out user."
-      
+
       # Reset credentials so they must reauthenticate
       update!(
-        google_token: nil, 
-        google_refresh_token: nil, 
+        google_token: nil,
+        google_refresh_token: nil,
         google_token_expires_at: nil
       )
 
