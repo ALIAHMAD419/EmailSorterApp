@@ -35,7 +35,7 @@ class CategoriesController < ApplicationController
 
 
   def destroy
-    # @category.destroy
+    @category.destroy
     flash[:success] = "Category deleted successfully."
     redirect_to categories_path
   end
