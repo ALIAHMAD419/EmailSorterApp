@@ -15,6 +15,7 @@
         <tr>
           <th>Name</th>
           <th>Description</th>
+          <th>Emails Count</th>
           <th class="text-center">Actions</th>
         </tr>
       </thead>
@@ -28,6 +29,11 @@
             </td>
             <td>
               <%= link_to (category.description.presence || "No description available"), 
+                        category_emails_path(category.id), 
+                        class: 'text-decoration-none text-secondary' %>
+            </td>
+            <td>
+              <%= link_to (category.emails.count), 
                         category_emails_path(category.id), 
                         class: 'text-decoration-none text-secondary' %>
             </td>

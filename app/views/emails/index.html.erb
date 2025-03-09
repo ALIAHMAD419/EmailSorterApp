@@ -23,7 +23,6 @@
             <th><input type="checkbox" id="selectAll"></th>
             <th>Subject</th>
             <th>Summary</th>
-            <th>Category</th>
           </tr>
         </thead>
         <tbody>
@@ -37,9 +36,6 @@
               </td>
               <td>
                 <%= link_to (email.summary.presence || "No Summary Available"), category_email_path(email.category, email), class: "text-decoration-none text-secondary" %>
-              </td>
-              <td>
-                <%= link_to email.category.name, category_email_path(email.category, email), class: "text-decoration-none text-dark" %>
               </td>
             </tr>
           <% end %>

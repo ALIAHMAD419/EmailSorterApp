@@ -13,15 +13,20 @@ class GmailService
     return unless @service.authorization
 
     begin
-      response = @service.list_user_messages("me", label_ids: [ "INBOX" ], q: "is:unread", max_results: 3)
+      response = @service.list_user_messages("me", label_ids: [ "INBOX" ], q: "is:unread", max_results: 4)
       return unless response.messages
+
       json_data = JSON.pretty_generate(response.to_h)
 
       # Save the response in a file
       File.open(Rails.root.join("gmail.json"), "w") { |file| file.write(json_data) }
 
       response.messages.each do |message|
-        process_email(message.id)
+        begin
+          process_email(message.id)
+        rescue StandardError => e
+          puts "⚠️ Skipping email (ID: #{message.id}) due to error: #{e.message}"
+        end
       end
     rescue Google::Apis::AuthorizationError
       puts "⚠️ Unauthorized! Checking login status..."
@@ -35,12 +40,17 @@ class GmailService
   end
 
 
+
   def process_email(message_id)
     email = @service.get_user_message("me", message_id)
     subject = email.payload.headers.find { |h| h.name == "Subject" }&.value
     body =  EmailExtractor.extract_body(email)
     category = EmailCategorizer.categorize(body, @user.categories)
     summary = EmailSummarizer.summarize(body)
+
+    if subject.blank? || body.blank? || category.blank? || summary.blank?
+      raise "⚠️ Missing required email fields: subject=#{subject.inspect}, body=#{body.inspect}, category=#{category.inspect}, summary=#{summary.inspect}"
+    end
 
     Email.create!(
       subject: subject,
