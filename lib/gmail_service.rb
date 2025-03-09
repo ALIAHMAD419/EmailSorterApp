@@ -2,6 +2,7 @@ require "google/apis/gmail_v1"
 require "base64"
 
 class GmailService
+  attr_reader :error_message
   def initialize(user)
     @user = user
     @service = Google::Apis::GmailV1::GmailService.new
