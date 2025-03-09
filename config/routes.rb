@@ -5,12 +5,14 @@ Rails.application.routes.draw do
   delete "/logout", to: "sessions#destroy"
 
   resources :categories do
-    resources :emails, only: [:index, :show, :destroy]
+    resources :emails, only: [ :index, :show, :destroy ]
   end
 
   post "sync_emails", to: "categories#sync_emails"
   post "/bulk_action", to: "emails#bulk_action"
-  
+  require "sidekiq/web"
+  mount Sidekiq::Web => "/sidekiq"
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

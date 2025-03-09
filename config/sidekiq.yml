@@ -1,0 +1,8 @@
+:concurrency: 5
+:queues:
+  - default
+:scheduler:
+  :schedule:
+    sync_emails:
+      cron: "*/10 * * * *" # Runs every 10 minutes
+      class: "SyncEmailsJob"

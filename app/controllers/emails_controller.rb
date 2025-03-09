@@ -1,4 +1,6 @@
 class EmailsController < ApplicationController
+  before_action :require_login
+
   def index
     if params[:category_id].present?
       category = Category.find_by(id: params[:category_id])
@@ -51,5 +53,14 @@ class EmailsController < ApplicationController
 
     category = Email.find_by(id: email_ids&.first)&.category
     redirect_to category ? category_emails_path(category) : categories_path
+  end
+
+  private
+
+  def require_login
+    unless logged_in?
+      flash[:error] = "You must be logged in to access this page!"
+      redirect_to root_path # Redirect to home page or login page
+    end
   end
 end
