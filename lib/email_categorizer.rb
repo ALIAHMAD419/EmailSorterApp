@@ -1,17 +1,18 @@
 require "openai"
 
 class EmailCategorizer
-  DEFAULT_CATEGORY_NAME = "Uncategorized".freeze
+  DEFAULT_CATEGORY_NAME = "Default".freeze
 
-  def self.categorize(email_body)
+  def self.categorize(email_body, categories)
     # email_body = File.read("body.txt")
 
     return default_category if email_body.blank?
 
-    categories = Category.all #has to add cuurent user
     return default_category if categories.empty?
 
-    ai_service = OpenAiService.new
+    # ai_service = OpenAiService.new
+    ai_service = GeminiService.new
+
     prompt = <<~PROMPT
       You are an AI email categorizer. Below is an email body. Your task is to assign the best-matching category from the list below based on its description.
 

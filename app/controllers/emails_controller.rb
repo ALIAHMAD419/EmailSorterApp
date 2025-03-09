@@ -22,8 +22,8 @@ class EmailsController < ApplicationController
   def destroy
     @category = Category.find(params[:category_id])
     @email = @category.emails.find(params[:id])
-    # @email.destroy
-    flash[:success] = "Category deleted successfully."
+    @email.destroy
+    flash[:success] = "Email deleted successfully."
     redirect_to category_emails_path
   end
 
@@ -38,12 +38,12 @@ class EmailsController < ApplicationController
     else
       case action
       when "delete"
-        # Email.where(id: email_ids).destroy_all
-        Email.where(id: email_ids)
+        Email.where(id: email_ids).destroy_all
+        # Email.where(id: email_ids)
         flash[:success] = "Selected emails have been deleted."
       when "unsubscribe"
         puts "Unsubscribing from emails with IDs: #{email_ids.join(', ')}"
-        flash[:info] = "Unsubscribe action printed to console."
+        flash[:info] = "Unsubscribe action is in progresss."
       else
         flash[:error] = "Invalid action selected."
       end

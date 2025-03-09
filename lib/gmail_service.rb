@@ -38,7 +38,7 @@ class GmailService
     email = @service.get_user_message("me", message_id)
     subject = email.payload.headers.find { |h| h.name == "Subject" }&.value
     body =  EmailExtractor.extract_body(email)
-    category = EmailCategorizer.categorize(body)
+    category = EmailCategorizer.categorize(body, @user.categories)
     summary = EmailSummarizer.summarize(body)
 
     Email.create!(

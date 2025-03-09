@@ -11,11 +11,11 @@ class CategoriesController < ApplicationController
 
   def create
     @category = current_user.categories.build(category_params)
+
     if @category.save
-      flash[:notice] = "Category created successfully."
-      redirect_to categories_path
+      redirect_to categories_path, notice: "Category created successfully."
     else
-      flash[:alert] = "Failed to create category. Please check the errors."
+      flash.now[:error] = @category.errors.full_messages.join(", ")
       render :new, status: :unprocessable_entity
     end
   end
@@ -28,16 +28,21 @@ class CategoriesController < ApplicationController
       flash[:notice] = "Category updated successfully."
       redirect_to categories_path
     else
-      flash[:alert] = "Failed to update category. Please check the errors."
+      flash[:error] = @category.errors.full_messages.join(", ")
       render :edit, status: :unprocessable_entity
     end
   end
 
 
   def destroy
-    @category.destroy
-    flash[:success] = "Category deleted successfully."
-    redirect_to categories_path
+    if @category.emails.any?
+      flash[:error] = "Cannot delete category. Please delete associated emails first."
+      redirect_to categories_path
+    else
+      @category.destroy
+      flash[:success] = "Category deleted successfully."
+      redirect_to categories_path
+    end
   end
 
 
@@ -46,7 +51,7 @@ class CategoriesController < ApplicationController
 
   def require_login
     unless logged_in?
-      flash[:alert] = "You must be logged in to access this page!"
+      flash[:error] = "You must be logged in to access this page!"
       redirect_to root_path # Redirect to home page or login page
     end
   end
