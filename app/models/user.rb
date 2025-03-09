@@ -15,7 +15,7 @@ class User < ApplicationRecord
         { name: "Work", description: "Emails related to work" },
         { name: "Promotions", description: "Promotional emails" },
         { name: "Personal", description: "Personal emails" },
-        { name: "Default", description: "When there is not perfect match" }
+        { name: "Default", description: "Emails that don't fit other categories." }
       ])
     end
 

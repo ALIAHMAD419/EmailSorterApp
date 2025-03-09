@@ -7,7 +7,8 @@ Rails.application.routes.draw do
   resources :categories do
     resources :emails, only: [:index, :show, :destroy]
   end
-  
+
+  post "sync_emails", to: "categories#sync_emails"
   post "/bulk_action", to: "emails#bulk_action"
   
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

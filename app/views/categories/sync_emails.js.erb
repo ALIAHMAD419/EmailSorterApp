@@ -1,0 +1,4 @@
+document.getElementById("sync-button").style.display = "block"; // Show button again
+document.getElementById("loading-spinner").style.display = "none"; // Hide spinner
+
+alert("<%= j flash[:success] || flash[:error] %>");

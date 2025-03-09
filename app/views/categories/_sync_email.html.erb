@@ -1,0 +1,17 @@
+<%= button_to "Sync Emails", sync_emails_path, method: :post, remote: true, id: "sync-button", class: "btn btn-primary" %>
+
+<div id="loading-spinner" style="display: none;">
+  <%= image_tag "spinner.gif", alt: "Loading...", width: 50, height: 50  %>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const syncButton = document.getElementById("sync-button");
+    const spinner = document.getElementById("loading-spinner");
+
+    syncButton.addEventListener("click", function() {
+      syncButton.style.display = "none";  // Hide button
+      spinner.style.display = "block";  // Show spinner
+    });
+  });
+</script>

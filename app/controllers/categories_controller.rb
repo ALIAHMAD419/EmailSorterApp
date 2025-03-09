@@ -45,7 +45,24 @@ class CategoriesController < ApplicationController
     end
   end
 
+  def sync_emails
+    service = GmailService.new(current_user)
 
+    if service.fetch_unread_emails
+      flash[:success] = "Emails synced successfully."
+    else
+      flash[:error] = service.error_message ||  "Failed to sync emails. Please try again."
+    end
+
+    respond_to do |format|
+      format.html { redirect_to categories_path }
+      format.js
+    end
+  rescue StandardError => e
+    Rails.logger.error "Email Sync Error: #{e.message}"
+    flash[:error] = "An error occurred while syncing emails."
+    redirect_to categories_path
+  end
 
   private
 
