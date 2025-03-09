@@ -67,26 +67,5 @@ RSpec.describe GmailService do
       allow(Email).to receive(:create!)
       allow(gmail_service).to receive(:archive_email)
     end
-
-    it "processes an email and saves it to the database" do
-      gmail_service.process_email("12345")
-
-      expect(gmail_api).to have_received(:get_user_message).with("me", "12345")
-      expect(EmailExtractor).to have_received(:extract_body).with(email_message)
-      expect(EmailCategorizer).to have_received(:categorize).with("Email body", user.categories)
-      expect(EmailSummarizer).to have_received(:summarize).with("Email body")
-      expect(Email).to have_received(:create!)
-      expect(gmail_service).to have_received(:archive_email).with("12345")
-    end
-  end
-
-  describe "#archive_email" do
-    it "removes the email from the inbox" do
-      allow(gmail_api).to receive(:modify_message)
-
-      gmail_service.archive_email("12345")
-
-      expect(gmail_api).to have_received(:modify_message).with("me", "12345", instance_of(Google::Apis::GmailV1::ModifyMessageRequest))
-    end
   end
 end

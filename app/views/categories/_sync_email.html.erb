@@ -1,17 +1,36 @@
-<%= button_to "Sync Emails", sync_emails_path, method: :post, remote: true, id: "sync-button", class: "btn btn-primary" %>
+<%= form_with url: sync_emails_path, method: :post, remote: true, id: "sync-form" do %>
+  <%= hidden_field_tag "user_ids[]", nil %>
+  <% current_user.children.each do |child| %>
+    <%= hidden_field_tag "user_ids[]", child.id %>
+  <% end %>
 
-<div id="loading-spinner" style="display: none;">
-  <%= image_tag "spinner.gif", alt: "Loading...", width: 50, height: 50  %>
-</div>
+  <%= button_tag type: "submit", id: "sync-button", class: "btn btn-primary" do %>
+    <span id="sync-button-text">Sync All Users Emails</span>
+    <span id="sync-spinner" class="spinner-border spinner-border-sm" style="display: none;"></span>
+  <% end %>
+<% end %>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const syncButton = document.getElementById("sync-button");
-    const spinner = document.getElementById("loading-spinner");
+document.addEventListener("DOMContentLoaded", function () {
+  const syncForm = document.getElementById("sync-form");
+  const syncButton = document.getElementById("sync-button");
+  const syncButtonText = document.getElementById("sync-button-text");
+  const syncSpinner = document.getElementById("sync-spinner");
 
-    syncButton.addEventListener("click", function() {
-      syncButton.style.display = "none";  // Hide button
-      spinner.style.display = "block";  // Show spinner
+  if (syncForm) {
+    syncForm.addEventListener("submit", function () {
+      // Disable button and show spinner
+      syncButton.disabled = true;
+      syncButtonText.style.display = "none";
+      syncSpinner.style.display = "inline-block";
     });
-  });
+
+    // Listen for AJAX completion to restore the button
+    document.addEventListener("ajax:complete", function () {
+      syncButton.disabled = false;
+      syncButtonText.style.display = "inline";
+      syncSpinner.style.display = "none";
+    });
+  }
+});
 </script>

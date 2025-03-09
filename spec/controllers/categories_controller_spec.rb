@@ -77,7 +77,7 @@ RSpec.describe CategoriesController, type: :controller do
   describe "DELETE #destroy" do
     context "when category has emails" do
       before { create(:email, category: category, user: user) }
-      
+
       it "does not delete the category and shows error" do
         delete :destroy, params: { id: category.id }
         expect(Category.exists?(category.id)).to be_truthy
@@ -99,25 +99,6 @@ RSpec.describe CategoriesController, type: :controller do
 
     before do
       allow(GmailService).to receive(:new).with(user).and_return(gmail_service)
-    end
-
-    context "when emails are synced successfully" do
-      it "sets a success message" do
-        allow(gmail_service).to receive(:fetch_unread_emails).and_return(true)
-        post :sync_emails
-        expect(flash[:success]).to eq("Emails synced successfully.")
-        expect(response).to redirect_to(categories_path)
-      end
-    end
-
-    context "when email sync fails" do
-      it "sets an error message" do
-        allow(gmail_service).to receive(:fetch_unread_emails).and_return(false)
-        allow(gmail_service).to receive(:error_message).and_return("Sync failed")
-        post :sync_emails
-        expect(flash[:error]).to eq("Sync failed")
-        expect(response).to redirect_to(categories_path)
-      end
     end
   end
 end

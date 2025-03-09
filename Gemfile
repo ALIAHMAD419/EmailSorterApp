@@ -44,6 +44,7 @@ gem "hugging-face", "~> 0.3.5"
 gem "sidekiq"
 gem "sidekiq-cron"
 gem "faker"
+gem "signet"
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"

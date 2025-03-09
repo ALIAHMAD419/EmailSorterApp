@@ -3,7 +3,12 @@
     <h1 class="text-3xl font-bold text-primary mb-4">📧 Welcome to Email Sorter</h1>
     <p class="text-gray-600 mb-6">Sign in to explore smart email management.</p>
 
-    <% unless logged_in? %>
+    <% if logged_in? %>
+      <div class="mt-4">
+        <%= link_to "📂 Manage Emails", categories_path, 
+                    class: "bg-blue-600 text-black px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition" %>
+      </div>
+    <% else %>
       <div class="mt-4">
         <%= link_to "/auth/google_oauth2", class: "inline-block" do %>
           <img src="https://developers.google.com/identity/images/btn_google_signin_light_normal_web.png" 

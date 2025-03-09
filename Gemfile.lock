@@ -529,6 +529,7 @@ DEPENDENCIES
   shoulda-matchers (~> 5.0)
   sidekiq
   sidekiq-cron
+  signet
   sprockets-rails
   stimulus-rails
   turbo-rails

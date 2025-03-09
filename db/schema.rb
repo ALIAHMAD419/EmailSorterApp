@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_03_07_140303) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_09_114831) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -46,9 +46,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_140303) do
     t.string "provider"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "parent_id"
+    t.index ["parent_id"], name: "index_users_on_parent_id"
   end
 
   add_foreign_key "categories", "users"
   add_foreign_key "emails", "categories"
   add_foreign_key "emails", "users"
+  add_foreign_key "users", "users", column: "parent_id", on_delete: :cascade
 end

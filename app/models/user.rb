@@ -1,16 +1,32 @@
+require "googleauth"
+
 class User < ApplicationRecord
   has_many :categories
   has_many :emails
 
-  def self.from_omniauth(response)
-    user = User.find_or_create_by(uid: response[:uid], provider: response[:provider]) do |u|
+  has_many :children, class_name: "User", foreign_key: "parent_id", dependent: :destroy
+  belongs_to :parent, class_name: "User", optional: true
+
+  def owner?
+    parent_id.nil? # Owner has no parent
+  end
+
+  def self.from_omniauth(response, parent_user = nil)
+    user = User.find_or_initialize_by(uid: response[:uid], provider: response[:provider]) do |u|
       u.name = response[:info][:name]
       u.email = response[:info][:email]
       u.google_token = response[:credentials][:token]
       u.google_refresh_token = response[:credentials][:refresh_token] if response[:credentials][:refresh_token].present?
       u.google_token_expires_at = Time.at(response[:credentials][:expires_at])
     end
-    if user.persisted? && user.categories.empty?
+
+    if parent_user && user.new_record?
+      user.parent_id = parent_user.id
+    end
+
+    user.save!
+
+    if user.persisted? && user.categories.empty? && user.parent_id.nil?
       user.categories.create([
         { name: "Work", description: "Emails related to work" },
         { name: "Promotions", description: "Promotional emails" },
@@ -31,7 +47,7 @@ class User < ApplicationRecord
   end
 
   def google_credentials
-    return nil unless google_token
+    return { success: false, message: "⚠️ No Google token available." } unless google_token
 
     client = Signet::OAuth2::Client.new(
       client_id: ENV["GOOGLE_CLIENT_ID"],
@@ -44,15 +60,16 @@ class User < ApplicationRecord
 
     if google_token_expires_at.nil? || client.expired? || google_token_expires_at < 5.minutes.from_now
       if google_refresh_token.present?
-        puts "🔄 Refreshing Google token..."
-        return refresh_google_token(client)
-      else
-        puts "⚠️ No refresh token available. User may need to reauthenticate."
-        return nil  # Return nil to force re-authentication in the app
-      end
-    end
+        refresh_result = refresh_google_token(client)
+        return refresh_result if refresh_result[:success] == false
 
-    client
+        { success: true, message: "✅ Google token refreshed successfully!", token: refresh_result[:token] }
+      else
+        { success: false, message: "⚠️ No refresh token available. User may need to reauthenticate." }
+      end
+    else
+    { success: true, message: "✅ Token is still valid. No refresh needed yet.", token: google_token }
+    end
   end
 
   private
@@ -61,23 +78,15 @@ class User < ApplicationRecord
     begin
       response = client.refresh!
       update!(
-        google_token: response.access_token,
-        google_token_expires_at: Time.now + response.expires_in.to_i.seconds
+        google_token: response["access_token"],
+        google_token_expires_at: Time.now + response["expires_in"].to_i.seconds
       )
 
-      puts "✅ Google token refreshed successfully!"
-      response.access_token
+      { success: true, message: "✅ Google token refreshed successfully!", token: response["access_token"] }
     rescue Signet::AuthorizationError => e
-      puts "⚠️ Token refresh failed: #{e.message}. Logging out user."
+      update!(google_token: nil, google_refresh_token: nil, google_token_expires_at: nil)
 
-      # Reset credentials so they must reauthenticate
-      update!(
-        google_token: nil,
-        google_refresh_token: nil,
-        google_token_expires_at: nil
-      )
-
-      nil
+      { success: false, message: "⚠️ Token refresh failed: #{e.message}. User must reauthenticate." }
     end
   end
 end

@@ -3,18 +3,19 @@ require "base64"
 
 class GmailService
   attr_reader :error_message
-  def initialize(user)
+  def initialize(user, current_user)
+    @current_user = current_user
     @user = user
     @service = Google::Apis::GmailV1::GmailService.new
     authorize!
   end
 
   def fetch_unread_emails
-    return unless @service.authorization
+    return "No authorization" unless @service.authorization
 
     begin
-      response = @service.list_user_messages("me", label_ids: [ "INBOX" ], q: "is:unread", max_results: 4)
-      return unless response.messages
+      response = @service.list_user_messages("me", label_ids: ["INBOX"], q: "is:unread", max_results: 4)
+      return "No unread emails found in the inbox" unless response.messages.present?
 
       json_data = JSON.pretty_generate(response.to_h)
 
@@ -25,19 +26,22 @@ class GmailService
         begin
           process_email(message.id)
         rescue StandardError => e
-          puts "⚠️ Skipping email (ID: #{message.id}) due to error: #{e.message}"
+          Rails.logger.error "⚠️ Skipping email (ID: #{message.id}) due to error: #{e.message}"
+          next
         end
       end
-    rescue Google::Apis::AuthorizationError
-      puts "⚠️ Unauthorized! Checking login status..."
-      return unless refresh_google_token!
+      return "Successfully fetched unread emails."
 
-      puts "🔄 Retrying email fetch..."
-      retry
+    rescue Google::Apis::AuthorizationError
+      Rails.logger.error "⚠️ Unauthorized! Checking login status..."
+      return "Unauthorized! Please reauthenticate to continue."
+
     rescue StandardError => e
-      puts "❌ Error fetching emails: #{e.message}"
+      Rails.logger.error "❌ Error fetching emails: #{e.message}"
+      return "Error fetching emails: #{e.message}"
     end
   end
+  
 
 
 
@@ -45,7 +49,7 @@ class GmailService
     email = @service.get_user_message("me", message_id)
     subject = email.payload.headers.find { |h| h.name == "Subject" }&.value
     body =  EmailExtractor.extract_body(email)
-    category = EmailCategorizer.categorize(body, @user.categories)
+    category = EmailCategorizer.categorize(body, @current_user.categories)
     summary = EmailSummarizer.summarize(body)
 
     if subject.blank? || body.blank? || category.blank? || summary.blank?
@@ -70,14 +74,14 @@ class GmailService
   private
 
   def authorize!
-    @service.authorization = @user.google_credentials
+    @service.authorization = @user.google_credentials[:token]
     if @service.authorization.nil?
       puts "⚠️ User is not logged in or credentials are missing!"
     end
   end
 
   def refresh_google_token!
-    new_token = @user.google_credentials
+    new_token = @user.google_credentials[:token]
     if new_token.nil?
       puts "⚠️ Token refresh failed. User must log in again."
       return false

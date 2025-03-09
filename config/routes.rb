@@ -9,6 +9,12 @@ Rails.application.routes.draw do
     resources :emails, only: [ :index, :show, :destroy ]
   end
 
+  resources :users, only: [ :destroy ] do
+    member do
+      post "refresh_token", to: "users#user_refresh_token", as: :refresh_token
+    end
+  end
+
   post "sync_emails", to: "categories#sync_emails"
   post "/bulk_action", to: "emails#bulk_action"
   require "sidekiq/web"

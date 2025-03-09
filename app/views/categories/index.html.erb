@@ -1,55 +1,157 @@
 <div class="container mt-5">
-    <!-- Flash Messages -->
+  <!-- Flash Messages -->
   <%= render "shared/flash" %>
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="text-primary mb-0">📂 My Categories</h1>
-  <div class="d-flex align-items-center">
-    <%= link_to '➕ Add New Category', new_category_path, class: 'btn btn-success me-2' %>
-    <%= render "categories/sync_email" %>
+<!-- Gmail Accounts Section -->
+<div class="card shadow-lg mb-4">
+  <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <h2 class="mb-0">📧 Connected Gmail Accounts</h2>
+
+    <!-- Create a wrapper div to contain both buttons and apply flexbox styling -->
+    <div class="d-flex align-items-center">
+      <%= link_to "➕ Connect Another Gmail Account", "/auth/google_oauth2?prompt=select_account", class: "btn btn-primary me-2" %>
+
+      <!-- Update Self Emails Button -->
+      <%= form_with url: sync_emails_path, method: :post, class: "d-inline" do %>
+        <%= hidden_field_tag "user_ids[]", current_user.id %> <!-- Send current_user ID in an array -->
+        <%= submit_tag "🔄 Update Self Emails", class: "btn btn-info" %>
+      <% end %>
+    </div>
+  </div>
+  <div class="card-body">
+    <% if @user_children.any? %>
+      <%= form_with url: sync_emails_path, method: :post, class: "mb-3" do %>
+        <div class="d-flex justify-content-between align-items-center">
+          <%= submit_tag "🔄 Sync Selected Users Emails", class: "btn btn-success", id: "sync_now_button", disabled: true %>
+        </div>
+
+        <table class="table table-bordered table-hover mt-3">
+          <thead class="table-dark">
+            <tr>
+              <th><input type="checkbox" id="select_all"></th> <!-- For Select All -->
+              <th>Name</th>
+              <th>Email</th>
+              <th>Provider</th>
+              <th>Token Expires At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @user_children.each do |child| %>
+              <tr>
+                <td><input type="checkbox" name="user_ids[]" value="<%= child.id %>" class="user-checkbox"></td>
+                <td><%= child.name.presence || "N/A" %></td>
+                <td><%= child.email.presence || "N/A" %></td>
+                <td><%= child.provider.presence || "N/A" %></td>
+                <td><%= child.google_token_expires_at&.strftime("%B %d, %Y %H:%M") || "N/A" %></td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <!-- Refresh Token Button -->
+                    <%= form_with url: refresh_token_user_path(child), method: :post, class: "d-inline" do %>
+                      <%= submit_tag "🔄 Refresh Token", class: "btn btn-warning btn-sm me-2" %>
+                    <% end %>
+
+                    <!-- Delete Button -->
+                    <%= form_with url: user_path(child), method: :delete, data: { confirm: 'Are you sure?' }, class: "d-inline" do %>
+                      <%= submit_tag "🗑️ Delete", class: "btn btn-danger btn-sm" %>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    <% else %>
+      <div class="alert alert-info text-center">
+        No connected Gmail accounts. <%= link_to 'Connect now!', "/auth/google_oauth2?prompt=select_account", class: 'alert-link' %>
+      </div>
+    <% end %>
   </div>
 </div>
 
-  <% if @categories.any? %>
-    <table class="table table-striped table-hover shadow-lg">
-      <thead class="bg-primary text-white">
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-          <th>Emails Count</th>
-          <th class="text-center">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @categories.each do |category| %>
-          <tr>
-            <td>
-              <strong>
-                <%= link_to category.name, category_emails_path(category.id), class: 'text-decoration-none text-primary' %>
-              </strong>
-            </td>
-            <td>
-              <%= link_to (category.description.presence || "No description available"), 
-                        category_emails_path(category.id), 
-                        class: 'text-decoration-none text-secondary' %>
-            </td>
-            <td>
-              <%= link_to (category.emails.count), 
-                        category_emails_path(category.id), 
-                        class: 'text-decoration-none text-secondary' %>
-            </td>
-            <td class="text-center">
-              <%= link_to 'Edit', edit_category_path(category), class: 'btn btn-warning btn-sm' %>
-              <%= form_with url: category_path(category), method: :delete, data: { confirm: 'Are you sure?' }, class: 'd-inline' do %>
-                <%= submit_tag "Delete", class: "btn btn-danger btn-sm" %>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <div class="alert alert-info text-center">
-      No categories found. <%= link_to 'Add one now!', new_category_path, class: 'alert-link' %>
+<script>
+  const selectAllCheckbox = document.getElementById('select_all');
+  const userCheckboxes = document.querySelectorAll('.user-checkbox');
+  const syncButton = document.getElementById('sync_now_button');
+
+  // Select/Deselect all checkboxes
+  selectAllCheckbox.addEventListener('change', function() {
+    const isChecked = selectAllCheckbox.checked;
+    userCheckboxes.forEach(checkbox => {
+      checkbox.checked = isChecked;
+    });
+    toggleSyncButton();
+  });
+
+  // Enable/disable the sync button based on checkbox selection
+  userCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', toggleSyncButton);
+  });
+
+  function toggleSyncButton() {
+    const selected = Array.from(userCheckboxes).some(checkbox => checkbox.checked);
+    syncButton.disabled = !selected;
+  }
+</script>
+
+
+
+  <!-- Categories Section -->
+  <div class="card shadow-lg">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">📂 My Categories</h2>
+      <div class="d-flex align-items-center">
+        <%= link_to '➕ Add New Category', new_category_path, class: 'btn btn-success me-2' %>
+        <%#= render "categories/sync_email" %>
+      </div>
     </div>
-  <% end %>
+    <div class="card-body">
+      <% if @categories.any? %>
+        <table class="table table-striped table-hover">
+          <thead class="bg-primary text-white">
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Emails Count</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @categories.each do |category| %>
+              <tr>
+                <td>
+                  <strong>
+                    <%= link_to category.name, category_emails_path(category.id), class: 'text-decoration-none text-primary' %>
+                  </strong>
+                </td>
+                <td>
+                  <%= link_to (category.description.presence || "No description available"), 
+                            category_emails_path(category.id), 
+                            class: 'text-decoration-none text-secondary' %>
+                </td>
+                <td>
+                  <%= link_to (category.emails.count), 
+                            category_emails_path(category.id), 
+                            class: 'text-decoration-none text-secondary' %>
+                </td>
+                <td class="text-center">
+                  <%= link_to 'Edit', edit_category_path(category), class: 'btn btn-warning btn-sm' %>
+                  <%= form_with url: category_path(category), method: :delete, data: { confirm: 'Are you sure?' }, class: 'd-inline' do %>
+                    <%= submit_tag "Delete", class: "btn btn-danger btn-sm" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="alert alert-info text-center">
+          No categories found. <%= link_to 'Add one now!', new_category_path, class: 'alert-link' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
 </div>
+
+
+
