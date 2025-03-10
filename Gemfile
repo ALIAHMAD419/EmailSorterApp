@@ -55,7 +55,7 @@ group :development, :test do
   gem "factory_bot"
   gem "factory_bot_rails"
   gem "rails-controller-testing"
-  gem "shoulda-matchers", "~> 5.0"
+  gem "shoulda-matchers", "~> 6.4"
   gem "webmock"
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
